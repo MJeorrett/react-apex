@@ -6,6 +6,8 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import Axios, { AxiosError } from 'axios';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 function isAxiosError(error: AxiosError | any): error is AxiosError {
   return error && error.isAxiosError
@@ -57,7 +59,7 @@ interface ApiError {
   errorDetail: object,
 }
 
-export function createApexSlice<T, TSummary, TId extends string|number>({
+export function createApexSlice<T, TSummary, TId extends string | number>({
   name,
   endpoint,
   selectSummaryId: selectId,
@@ -162,42 +164,61 @@ export function createApexSlice<T, TSummary, TId extends string|number>({
   });
 
   const summarySelectors = entityAdapter.getSelectors();
-  
+  const selectors = {
+    summaries: {
+      isLoading: createSelector(
+        selectSliceState,
+        state => state.entitiesMeta.isLoading,
+      ),
+      apiError: createSelector(
+        selectSliceState,
+        state => state.entitiesMeta.apiError,
+      ),
+      all: createSelector(
+        selectSliceState,
+        state => summarySelectors.selectAll(state.entities),
+      ),
+    },
+    entity: {
+      isLoading: createSelector(
+        selectSliceState,
+        state => state.entityMeta.isLoading,
+      ),
+      apiError: createSelector(
+        selectSliceState,
+        state => state.entityMeta.apiError,
+      ),
+      data: createSelector(
+        selectSliceState,
+        state => state.entity,
+      ),
+    },
+  };
+
   return {
     reducer: slice.reducer,
+    hooks: {
+      useSummaries: () => {
+        const dispatch = useDispatch();
+        const fields = useSelector(selectors.summaries.all);
+        const isLoading = useSelector(selectors.summaries.isLoading);
+        const error = useSelector(selectors.summaries.apiError);
+
+        useEffect(() => {
+          dispatch(getAllSummaries());
+        }, [dispatch]);
+
+        return {
+          fields,
+          isLoading,
+          error,
+        }
+      },
+    },
+    selectors,
     actions: {
       getAllSummaries,
       getById: (id: TId) => getById(id),
     },
-    selectors: {
-      summaries: {
-        isLoading: createSelector(
-          selectSliceState,
-          state => state.entitiesMeta.isLoading,
-        ),
-        apiError: createSelector(
-          selectSliceState,
-          state => state.entitiesMeta.apiError,
-        ),
-        all: createSelector(
-          selectSliceState,
-          state => summarySelectors.selectAll(state.entities),
-        ),
-      },
-      entity: {
-        isLoading: createSelector(
-          selectSliceState,
-          state => state.entityMeta.isLoading,
-        ),
-        apiError: createSelector(
-          selectSliceState,
-          state => state.entityMeta.apiError,
-        ),
-        data: createSelector(
-          selectSliceState,
-          state => state.entity,
-        ),
-      }
-    }
   }
 };

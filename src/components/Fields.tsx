@@ -1,17 +1,9 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
 
 import { fieldsSlice } from '../store';
 
 const Fields = () => {
-  const dispatch = useDispatch();
-  const fields = useSelector(fieldsSlice.selectors.summaries.all);
-  const isLoading = useSelector(fieldsSlice.selectors.summaries.isLoading);
-  const error = useSelector(fieldsSlice.selectors.summaries.apiError);
-
-  useEffect(() => {
-    dispatch(fieldsSlice.actions.getAllSummaries());
-  }, [dispatch]);
+  const { isLoading, error, fields } = fieldsSlice.hooks.useSummaries();
 
   return (
     <pre>{JSON.stringify({
