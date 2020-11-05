@@ -1,0 +1,19 @@
+{
+  "fields": [
+    {
+      "id": "abc",
+      "label": "First Name",
+      "helpText": "Your given name."
+    },
+    {
+      "id": "def",
+      "label": "Last Name",
+      "helpText": "Your surname name."
+    },
+    {
+      "id": "efg",
+      "label": "Age",
+      "helpText": "Your number of years."
+    }
+  ]
+}

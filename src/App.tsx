@@ -1,8 +1,14 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import Fields from './components/Fields';
+import store from './store';
 
 function App() {
   return (
-    <h1>React Apex</h1>
+    <Provider store={store}>
+      <h1>React Apex</h1>
+      <Fields />
+    </Provider>
   );
 }
 
