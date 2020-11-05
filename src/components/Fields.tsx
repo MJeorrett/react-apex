@@ -8,10 +8,10 @@ const Fields = () => {
 
   return (
     <>
-      <h1>Summaries</h1>
+      <h2>Summaries</h2>
       <pre>{JSON.stringify(summaries, null, 2)}</pre>
 
-      <h1>Entity</h1>
+      <h2>Entity</h2>
       <pre>{JSON.stringify(entityById, null, 2)}</pre>
     </>
   );
