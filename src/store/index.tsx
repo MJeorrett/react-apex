@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { createApexSlice } from "./createApexSlice";
+import { createApexSlice } from "../react-apex/createApexSlice";
 
 interface FieldSummary {
   id: string,
