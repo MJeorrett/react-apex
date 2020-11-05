@@ -149,6 +149,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       builder.addCase(getById.pending, state => {
         state.entityMeta.isLoading = true;
         state.entityMeta.apiError = undefined;
+        state.entity = undefined;
       });
       builder.addCase(getById.fulfilled, (state, { payload }) => {
         state.entitiesMeta.isLoading = false;
@@ -199,7 +200,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
     reducer: slice.reducer,
     useSummaries: () => {
       const dispatch = useDispatch();
-      const fields = useSelector(selectors.summaries.all);
+      const summaries = useSelector(selectors.summaries.all);
       const isLoading = useSelector(selectors.summaries.isLoading);
       const error = useSelector(selectors.summaries.apiError);
 
@@ -208,7 +209,23 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       }, [dispatch]);
 
       return {
-        fields,
+        summaries,
+        isLoading,
+        error,
+      }
+    },
+    useEntityById: (id: TId) => {
+      const dispatch = useDispatch();
+      const entity = useSelector(selectors.entity.data);
+      const isLoading = useSelector(selectors.entity.isLoading);
+      const error = useSelector(selectors.entity.apiError);
+
+      useEffect(() => {
+        dispatch(getById(id));
+      }, [dispatch, id]);
+
+      return {
+        entity,
         isLoading,
         error,
       }
