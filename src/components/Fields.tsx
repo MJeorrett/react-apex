@@ -3,7 +3,7 @@ import React from 'react';
 import { fieldsSlice } from '../store';
 
 const Fields = () => {
-  const { isLoading, error, fields } = fieldsSlice.hooks.useSummaries();
+  const { isLoading, error, fields } = fieldsSlice.useSummaries();
 
   return (
     <pre>{JSON.stringify({

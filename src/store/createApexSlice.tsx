@@ -197,23 +197,21 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
 
   return {
     reducer: slice.reducer,
-    hooks: {
-      useSummaries: () => {
-        const dispatch = useDispatch();
-        const fields = useSelector(selectors.summaries.all);
-        const isLoading = useSelector(selectors.summaries.isLoading);
-        const error = useSelector(selectors.summaries.apiError);
+    useSummaries: () => {
+      const dispatch = useDispatch();
+      const fields = useSelector(selectors.summaries.all);
+      const isLoading = useSelector(selectors.summaries.isLoading);
+      const error = useSelector(selectors.summaries.apiError);
 
-        useEffect(() => {
-          dispatch(getAllSummaries());
-        }, [dispatch]);
+      useEffect(() => {
+        dispatch(getAllSummaries());
+      }, [dispatch]);
 
-        return {
-          fields,
-          isLoading,
-          error,
-        }
-      },
+      return {
+        fields,
+        isLoading,
+        error,
+      }
     },
     selectors,
     actions: {
