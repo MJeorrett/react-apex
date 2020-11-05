@@ -46,19 +46,17 @@ const store = configureStore({
 });
 
 const Fields = () => {
-  const dispatch = useDispatch();
-  const fields = useSelector(fieldsSlice.selectors.summaries.all);
-  const isLoading = useSelector(fieldsSlice.selectors.summaries.isLoading);
-  const error = useSelector(fieldsSlice.selectors.summaries.apiError);
-
-  useEffect(() => {
-    dispatch(fieldsSlice.actions.getAllSummaries());
-  }, [dispatch]);
+  const summaries = fieldsSlice.useSummaries();
+  const entityById = fieldsSlice.useEntityById('abc');
 
   return (
-    <pre>{JSON.stringify({
-      fields, isLoading, error,
-    }, null, 2)}</pre>
+    <>
+      <h2>Summaries</h2>
+      <pre>{JSON.stringify(summaries, null, 2)}</pre>
+
+      <h2>Entity</h2>
+      <pre>{JSON.stringify(entityById, null, 2)}</pre>
+    </>
   );
 };
 ```
