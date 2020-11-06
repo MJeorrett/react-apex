@@ -8,7 +8,7 @@ import {
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { get, HttpClientError } from './httpClient';
+import { get, HttpClientError, post } from './httpClient';
 
 interface CreateApexSliceOptions<T, TSummary, TId> {
   name: string;
@@ -27,7 +27,11 @@ interface ApexSliceState<T, TSummary> {
   entityMeta: {
     isLoading: boolean,
     apiError?: HttpClientError,
-  }
+  },
+  createEntityMeta: {
+    isSubmitting: boolean,
+    apiError?: HttpClientError,
+  },
 }
 
 export function createApexSlice<T, TSummary, TId extends string | number>({
@@ -47,7 +51,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
     async (_, { rejectWithValue }) => {
       const response = await get<TSummary[]>(endpoint);
       return response.ok ?
-        response.content as TSummary[]:
+        response.content as TSummary[] :
         rejectWithValue(response);
     }
   );
@@ -68,6 +72,22 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
     }
   );
 
+  const create = createAsyncThunk<
+    {},
+    T,
+    {
+      rejectValue: HttpClientError,
+    }
+  >(
+    `${name}/create`,
+    async (entity, { rejectWithValue }) => {
+      const response = await post(`${endpoint}`, entity);
+      return response.ok ?
+        {} :
+        rejectWithValue(response);
+    }
+  );
+
   const entityAdapter = createEntityAdapter<TSummary>({
     selectId,
   });
@@ -83,6 +103,10 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       isLoading: false,
       apiError: undefined,
     },
+    createEntityMeta: {
+      isSubmitting: false,
+      apiError: undefined,
+    },
   };
 
   const slice = createSlice({
@@ -91,6 +115,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
     reducers: {
     },
     extraReducers: builder => {
+      // getAllSummaries
       builder.addCase(getAllSummaries.pending, state => {
         state.entitiesMeta.isLoading = true;
         state.entitiesMeta.apiError = undefined;
@@ -101,10 +126,9 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       });
       builder.addCase(getAllSummaries.rejected, (state, { payload }) => {
         state.entitiesMeta.isLoading = false;
-        if (payload) {
-          state.entitiesMeta.apiError = payload;
-        }
+        state.entitiesMeta.apiError = payload;
       });
+      // getById
       builder.addCase(getById.pending, state => {
         state.entityMeta.isLoading = true;
         state.entityMeta.apiError = undefined;
@@ -116,9 +140,19 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       });
       builder.addCase(getById.rejected, (state, { payload }) => {
         state.entityMeta.isLoading = false;
-        if (payload) {
-          state.entityMeta.apiError = payload;
-        }
+        state.entityMeta.apiError = payload;
+      });
+      // create
+      builder.addCase(create.pending, state => {
+        state.createEntityMeta.isSubmitting = true;
+        state.createEntityMeta.apiError = undefined;
+      });
+      builder.addCase(create.fulfilled, state => {
+        state.createEntityMeta.isSubmitting = false;
+      });
+      builder.addCase(create.rejected, (state, { payload }) => {
+        state.createEntityMeta.isSubmitting = false;
+        state.createEntityMeta.apiError = payload;
       });
     }
   });
@@ -153,6 +187,22 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
         state => state.entity,
       ),
     },
+    createEntity: {
+      isSubmitting: createSelector(
+        selectSliceState,
+        state => state.createEntityMeta.isSubmitting,
+      ),
+      apiError: createSelector(
+        selectSliceState,
+        state => state.createEntityMeta.apiError,
+      ),
+    },
+  };
+
+  const actions = {
+    getAllSummaries,
+    getById: (id: TId) => getById(id),
+    create: (entity: T) => create(entity),
   };
 
   return {
@@ -164,7 +214,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       const error = useSelector(selectors.summaries.apiError);
 
       useEffect(() => {
-        dispatch(getAllSummaries());
+        dispatch(actions.getAllSummaries());
       }, [dispatch]);
 
       return {
@@ -180,7 +230,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       const error = useSelector(selectors.entity.apiError);
 
       useEffect(() => {
-        dispatch(getById(id));
+        dispatch(actions.getById(id));
       }, [dispatch, id]);
 
       return {
@@ -189,10 +239,17 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
         error,
       }
     },
-    selectors,
-    actions: {
-      getAllSummaries,
-      getById: (id: TId) => getById(id),
+    useCreate: () => {
+      const dispatch = useDispatch();
+      const isSubmitting = useSelector(selectors.createEntity.isSubmitting);
+      const error = useSelector(selectors.createEntity.apiError);
+      return {
+        create: (entity: T) => dispatch(actions.create(entity)),
+        isSubmitting,
+        error,
+      }
     },
+    selectors,
+    actions,
   }
 };

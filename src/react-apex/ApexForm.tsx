@@ -25,7 +25,8 @@ function InnerForm<T extends { [key: string]: any }>({
 }
 
 interface MyFormProps<T> {
-  fieldLabels: { [key in keyof T]?: string }
+  fieldLabels: { [key in keyof T]?: string },
+  onSubmit: (entity: T) => void,
 }
 
 export default function createApexForm<T>() {
@@ -39,8 +40,9 @@ export default function createApexForm<T>() {
 
       return result;
     },
-    handleSubmit: values => {
+    handleSubmit: (values, { props }) => {
       console.log('Values:', values);
+      props.onSubmit(values);
     }
   })(InnerForm);
 }

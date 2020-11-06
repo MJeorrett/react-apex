@@ -10,6 +10,10 @@ export interface HttpClientSuccess<T> {
   ok: true,
 }
 
+export interface HttpClientSuccessNoContent {
+  ok: true,
+}
+
 export interface HttpClientError {
   ok: false,
   errorMessage: string,
@@ -17,6 +21,8 @@ export interface HttpClientError {
 }
 
 export type HttpClientResponse<T> = HttpClientSuccess<T> | HttpClientError;
+
+export type HttpClientNoContentResponse = HttpClientSuccessNoContent | HttpClientError;
 
 function handleError<T>(error: AxiosError): HttpClientResponse<T> {
   if (error.response) {
@@ -48,6 +54,22 @@ export async function get<T>(url: string): Promise<HttpClientResponse<T>> {
     return {
       ok: true,
       content: result.data as T,
+    };
+  }
+  catch (error) {
+    if (isAxiosError(error)) {
+      return handleError<T>(error);
+    }
+    throw error;
+  }
+}
+
+export async function post<T>(url: string, content: T): Promise<HttpClientNoContentResponse> {
+  try {
+    await Axios.post(url, content);
+    
+    return {
+      ok: true,
     };
   }
   catch (error) {
