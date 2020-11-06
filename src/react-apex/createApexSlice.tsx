@@ -5,34 +5,10 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import Axios, { AxiosError } from 'axios';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-function isAxiosError(error: AxiosError | any): error is AxiosError {
-  return error && error.isAxiosError
-}
-
-function handleError(error: AxiosError, rejectWithValue: (value: ApiError) => any) {
-  if (error.response) {
-    return rejectWithValue({
-      message: `Request failed with status code ${error.response.status}.`,
-      errorDetail: error.toJSON(),
-    });
-  } else if (error.request) {
-    return rejectWithValue({
-      message: 'No response received.',
-      errorDetail: error.toJSON(),
-    });
-  } else {
-    return rejectWithValue({
-      message: 'Error setting up request.',
-      errorDetail: {
-        message: error.message,
-      },
-    });
-  }
-}
+import { get, HttpClientError } from './httpClient';
 
 interface CreateApexSliceOptions<T, TSummary, TId> {
   name: string;
@@ -45,18 +21,13 @@ interface ApexSliceState<T, TSummary> {
   entities: EntityState<TSummary>;
   entitiesMeta: {
     isLoading: boolean,
-    apiError?: ApiError,
+    apiError?: HttpClientError,
   };
   entity?: T,
   entityMeta: {
     isLoading: boolean,
-    apiError?: ApiError,
+    apiError?: HttpClientError,
   }
-}
-
-interface ApiError {
-  message: string,
-  errorDetail: object,
 }
 
 export function createApexSlice<T, TSummary, TId extends string | number>({
@@ -69,21 +40,15 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
     TSummary[],
     undefined,
     {
-      rejectValue: ApiError,
+      rejectValue: HttpClientError,
     }
   >(
     `${name}/fetchAll`,
     async (_, { rejectWithValue }) => {
-      try {
-        const result = await Axios.get(endpoint);
-        return result.data as TSummary[];
-      }
-      catch (error) {
-        if (isAxiosError(error)) {
-          return handleError(error, rejectWithValue);
-        }
-        throw error;
-      }
+      const response = await get<TSummary[]>(endpoint);
+      return response.ok ?
+        response.content as TSummary[]:
+        rejectWithValue(response);
     }
   );
 
@@ -91,21 +56,15 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
     T,
     TId,
     {
-      rejectValue: ApiError,
+      rejectValue: HttpClientError,
     }
   >(
     `${name}/getById`,
     async (id, { rejectWithValue }) => {
-      try {
-        const result = await Axios.get(`${endpoint}/${id}`);
-        return result.data as T;
-      }
-      catch (error) {
-        if (isAxiosError(error)) {
-          return handleError(error, rejectWithValue);
-        }
-        throw error;
-      }
+      const response = await get<T>(`${endpoint}/${id}`);
+      return response.ok ?
+        response.content as T :
+        rejectWithValue(response);
     }
   );
 
