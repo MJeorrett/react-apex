@@ -1,14 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { createApexSlice } from "../react-apex/createApexSlice";
-
-interface FieldSummary {
-  id: string,
-  label: string,
-}
-
-interface Field extends FieldSummary {
-  helpText: string,
-}
+import { Field, FieldSummary } from '../models';
 
 export const fieldsSlice = createApexSlice<Field, FieldSummary, string>({
   name: 'fields',
