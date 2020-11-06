@@ -135,7 +135,7 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
         state.entity = undefined;
       });
       builder.addCase(getById.fulfilled, (state, { payload }) => {
-        state.entitiesMeta.isLoading = false;
+        state.entityMeta.isLoading = false;
         (state.entity as T) = payload;
       });
       builder.addCase(getById.rejected, (state, { payload }) => {
@@ -229,11 +229,8 @@ export function createApexSlice<T, TSummary, TId extends string | number>({
       const isLoading = useSelector(selectors.entity.isLoading);
       const error = useSelector(selectors.entity.apiError);
 
-      useEffect(() => {
-        dispatch(actions.getById(id));
-      }, [dispatch, id]);
-
       return {
+        getById: (id: TId) => dispatch(actions.getById(id)),
         entity,
         isLoading,
         error,
